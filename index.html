@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Game platformer 2D ritmis berkecepatan tinggi terinspirasi oleh Geometry Dash dengan level menantang, level editor, kustomisasi karakter, dan soundtrack elektronik.">
+  <meta name="theme-color" content="#0d0e1b">
+  <title>NEON DASH: Rhythm Platformer 2D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Press+Start+2P&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Container utama game -->
+  <div id="app-container">
+
+    <!-- Canvas Game Utama -->
+    <div id="game-wrapper">
+      <canvas id="gameCanvas" width="960" height="540"></canvas>
+      
+      <!-- In-Game HUD -->
+      <div id="game-hud" class="hud-overlay hidden">
+        <div class="hud-top-bar">
+          <div class="hud-left">
+            <button id="btn-hud-pause" class="hud-btn" title="Jeda Game" aria-label="Pause">
+              <span class="icon">⏸</span>
+            </button>
+            <div class="hud-level-info">
+              <span id="hud-level-name">Level 1: Neon Pulse</span>
+              <span id="hud-attempt-counter">Percobaan 1</span>
+            </div>
+          </div>
+          <div class="hud-center">
+            <div class="progress-bar-container">
+              <div id="hud-progress-fill" class="progress-bar-fill" style="width: 0%;"></div>
+              <span id="hud-progress-text" class="progress-bar-text">0%</span>
+            </div>
+          </div>
+          <div class="hud-right">
+            <button id="btn-hud-practice" class="hud-btn hud-btn-mode" title="Mode Latihan">
+              <span id="practice-indicator">NORMAL</span>
+            </button>
+            <button id="btn-hud-sound" class="hud-btn" title="Suara On/Off">
+              <span class="icon" id="sound-icon">🔊</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Practice Mode Checkpoint Buttons -->
+        <div id="practice-controls" class="practice-controls hidden">
+          <button id="btn-place-checkpoint" class="hud-btn practice-btn">
+            <span>+📍 Checkpoint</span>
+          </button>
+          <button id="btn-remove-checkpoint" class="hud-btn practice-btn danger">
+            <span>-🗑 Hapus</span>
+          </button>
+        </div>
+
+        <!-- Mobile Touch Jump Indicator Overlay -->
+        <div id="mobile-touch-hint" class="mobile-touch-hint">
+          <span>KETUK DI MANA SAJA UNTUK MELOMPAT</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="main-menu" class="screen-overlay active">
+      <div class="menu-backdrop"></div>
+      <div class="menu-content">
+        <div class="logo-container">
+          <div class="logo-sub">RHYTHM PLATFORMER 2D</div>
+          <h1 class="logo-title">NEON<span class="highlight">DASH</span></h1>
+          <div class="logo-badge">GEOMETRY EDITION</div>
+        </div>
+
+        <!-- Character Preview on Menu -->
+        <div class="menu-character-preview">
+          <canvas id="menu-cube-canvas" width="100" height="100"></canvas>
+          <div class="player-tag" id="player-display-tag">Player 1</div>
+        </div>
+
+        <!-- Main Action Buttons -->
+        <div class="menu-buttons">
+          <button id="btn-play-game" class="btn btn-primary pulse-btn">
+            <span class="btn-icon">▶</span>
+            <span class="btn-text">MULAI MAIN</span>
+          </button>
+          <div class="button-grid">
+            <button id="btn-open-garage" class="btn btn-secondary">
+              <span class="btn-icon">🎨</span>
+              <span class="btn-text">KUSTOMISASI</span>
+            </button>
+            <button id="btn-open-editor" class="btn btn-secondary">
+              <span class="btn-icon">🛠</span>
+              <span class="btn-text">LEVEL EDITOR</span>
+            </button>
+            <button id="btn-open-leaderboard" class="btn btn-secondary">
+              <span class="btn-icon">🏆</span>
+              <span class="btn-text">PERINGKAT</span>
+            </button>
+            <button id="btn-open-help" class="btn btn-secondary">
+              <span class="btn-icon">❓</span>
+              <span class="btn-text">CARA MAIN</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="menu-footer">
+          <span>Ketuk layar / Spasi / Klik untuk Melompat</span>
+          <span class="version-tag">v2.0 • WebGL & WebAudio</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL SELECT MODAL -->
+    <div id="modal-level-select" class="screen-overlay hidden">
+      <div class="modal-card level-select-card">
+        <div class="modal-header">
+          <h2>PILIH LEVEL</h2>
+          <button class="btn-close-modal" data-close="modal-level-select">✖</button>
+        </div>
+
+        <div class="levels-slider-container">
+          <button id="btn-prev-level" class="slider-arrow">◀</button>
+          <div class="level-card-wrapper" id="current-level-card">
+            <!-- Dynamic Level Card Content rendered by JS -->
+          </div>
+          <button id="btn-next-level" class="slider-arrow">▶</button>
+        </div>
+
+        <div class="level-dots-pagination" id="level-dots"></div>
+
+        <div class="level-action-row">
+          <button id="btn-start-selected-level" class="btn btn-primary large">
+            <span>MAIN SEKARANG</span>
+          </button>
+          <button id="btn-start-practice" class="btn btn-warning">
+            <span>MODE LATIHAN</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMIZER / GARAGE MODAL -->
+    <div id="modal-garage" class="screen-overlay hidden">
+      <div class="modal-card garage-card">
+        <div class="modal-header">
+          <h2>KUSTOMISASI KARAKTER</h2>
+          <button class="btn-close-modal" data-close="modal-garage">✖</button>
+        </div>
+
+        <div class="garage-body">
+          <div class="garage-preview-section">
+            <div class="cube-large-preview">
+              <canvas id="customizer-cube-canvas" width="140" height="140"></canvas>
+            </div>
+            <div class="player-name-input-group">
+              <label for="player-name-input">Nama Pemain:</label>
+              <input type="text" id="player-name-input" maxlength="15" value="CyberRunner" placeholder="Masukkan nama...">
+            </div>
+          </div>
+
+          <div class="garage-options-section">
+            <!-- Tabs -->
+            <div class="garage-tabs">
+              <button class="tab-btn active" data-tab="tab-icons">BENTUK IKON</button>
+              <button class="tab-btn" data-tab="tab-colors">WARNA</button>
+              <button class="tab-btn" data-tab="tab-trails">EFEK JEJAK</button>
+            </div>
+
+            <!-- Tab 1: Icons -->
+            <div id="tab-icons" class="tab-content active">
+              <div class="grid-picker" id="icons-picker"></div>
+            </div>
+
+            <!-- Tab 2: Colors -->
+            <div id="tab-colors" class="tab-content">
+              <h4>Warna Utama:</h4>
+              <div class="color-palette" id="primary-color-palette"></div>
+              <h4>Warna Sekunder:</h4>
+              <div class="color-palette" id="secondary-color-palette"></div>
+              <h4>Cahaya Neon:</h4>
+              <div class="color-palette" id="glow-color-palette"></div>
+            </div>
+
+            <!-- Tab 3: Trails & Effects -->
+            <div id="tab-trails" class="tab-content">
+              <div class="grid-picker list-picker" id="trails-picker"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-save-customizer" class="btn btn-primary" data-close="modal-garage">SIMPAN & PAKAI</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL EDITOR MODAL / SCREEN -->
+    <div id="screen-editor" class="screen-overlay hidden">
+      <div class="editor-header">
+        <div class="editor-title-group">
+          <span class="editor-badge">LEVEL CREATOR</span>
+          <input type="text" id="editor-level-name" value="Level Saya #1" maxlength="24">
+        </div>
+        <div class="editor-quick-actions">
+          <button id="btn-editor-playtest" class="btn btn-success">▶ UJI COBA</button>
+          <button id="btn-editor-save" class="btn btn-primary">💾 SIMPAN</button>
+          <button id="btn-editor-export" class="btn btn-secondary">📤 EKSPOR KODE</button>
+          <button id="btn-editor-import" class="btn btn-secondary">📥 IMPOR KODE</button>
+          <button id="btn-editor-exit" class="btn btn-danger">✖ KELUAR</button>
+        </div>
+      </div>
+
+      <div class="editor-workspace">
+        <div class="editor-canvas-container">
+          <canvas id="editorCanvas" width="960" height="420"></canvas>
+          <div class="editor-grid-coords" id="editor-coords">X: 0 | Y: 0</div>
+        </div>
+
+        <!-- Object Palette Toolbar -->
+        <div class="editor-toolbar">
+          <div class="toolbar-tools">
+            <button class="tool-btn active" data-tool="place" title="Letakkan Objek">✏️ Pasang</button>
+            <button class="tool-btn" data-tool="erase" title="Hapus Objek">🧹 Hapus</button>
+            <button class="tool-btn" data-tool="clear" title="Kosongkan Semua">🗑 Reset</button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <div class="toolbar-palette" id="editor-palette">
+            <!-- Palette items populated by JS: block, spike_up, spike_down, pad_yellow, pad_pink, orb_yellow, orb_blue, gravity_portal, finish_line -->
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <div class="editor-navigation">
+            <button id="btn-editor-pan-left" class="nav-btn">◀ Geser Kiri</button>
+            <span id="editor-page-indicator">Offset: 0</span>
+            <button id="btn-editor-pan-right" class="nav-btn">Geser Kanan ▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOBAL LEADERBOARD MODAL -->
+    <div id="modal-leaderboard" class="screen-overlay hidden">
+      <div class="modal-card leaderboard-card">
+        <div class="modal-header">
+          <h2>PAPAN PERINGKAT GLOBAL</h2>
+          <button class="btn-close-modal" data-close="modal-leaderboard">✖</button>
+        </div>
+
+        <div class="leaderboard-tabs" id="leaderboard-level-tabs">
+          <button class="tab-btn active" data-level="1">Level 1</button>
+          <button class="tab-btn" data-level="2">Level 2</button>
+          <button class="tab-btn" data-level="3">Level 3</button>
+          <button class="tab-btn" data-level="4">Level 4</button>
+        </div>
+
+        <div class="leaderboard-table-container">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Pemain</th>
+                <th>Kemajuan</th>
+                <th>Percobaan</th>
+                <th>Waktu</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-footer">
+          <div class="user-rank-status" id="user-rank-status">Skor Anda telah dicatat secara otomatis!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW TO PLAY / HELP MODAL -->
+    <div id="modal-help" class="screen-overlay hidden">
+      <div class="modal-card help-card">
+        <div class="modal-header">
+          <h2>CARA BERMAIN</h2>
+          <button class="btn-close-modal" data-close="modal-help">✖</button>
+        </div>
+        <div class="help-content">
+          <div class="help-section">
+            <div class="help-icon">👆</div>
+            <div class="help-text">
+              <h3>Kontrol Sederhana</h3>
+              <p><strong>Ketuk Layar</strong> di mana saja (di HP) atau tekan tombol <strong>SPASI / KLIK MOUSE</strong> (di Komputer) untuk melompat.</p>
+            </div>
+          </div>
+          <div class="help-section">
+            <div class="help-icon">🔺</div>
+            <div class="help-text">
+              <h3>Hindari Duri & Jurang</h3>
+              <p>Menyentuh duri atau bagian samping balok akan menghancurkan ikon Anda seketika. Refleks cepat adalah kuncinya!</p>
+            </div>
+          </div>
+          <div class="help-section">
+            <div class="help-icon">🟡</div>
+            <div class="help-text">
+              <h3>Bantalan & Bola Lompat (Orbs)</h3>
+              <p>Bantalan kuning/merah memantulkan karakter secara otomatis. Bola cincin melayang memerlukan ketukan saat karakter berada di dalamnya untuk lompatan ganda!</p>
+            </div>
+          </div>
+          <div class="help-section">
+            <div class="help-icon">🌌</div>
+            <div class="help-text">
+              <h3>Portal Gravitasi</h3>
+              <p>Portal biru & oranye akan membalikkan gravitasi ke langit-langit atau mengembalikannya ke lantai.</p>
+            </div>
+          </div>
+          <div class="help-section">
+            <div class="help-icon">🎵</div>
+            <div class="help-text">
+              <h3>Irama Musik</h3>
+              <p>Semua rintangan sinkron dengan ketukan drum soundtrack elektronik. Ikuti ritmenya untuk mempermudah waktu lompatan!</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" data-close="modal-help">SAYA MENGERTI</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME OVER POPUP -->
+    <div id="modal-game-over" class="screen-overlay hidden">
+      <div class="result-card game-over-card">
+        <div class="result-badge danger">CRASH!</div>
+        <h2 class="result-title">GAME OVER</h2>
+        <div class="result-stats">
+          <div class="stat-box">
+            <span class="stat-label">KEMAJUAN</span>
+            <span class="stat-value highlight" id="game-over-progress">0%</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">PERCOBAAN</span>
+            <span class="stat-value" id="game-over-attempts">1</span>
+          </div>
+        </div>
+        <div class="result-actions">
+          <button id="btn-restart-game" class="btn btn-primary pulse-btn">
+            <span class="btn-icon">🔄</span> ULANGI (RESTART)
+          </button>
+          <button id="btn-game-over-menu" class="btn btn-secondary">
+            <span class="btn-icon">🏠</span> MENU UTAMA
+          </button>
+        </div>
+        <div class="result-hint">Tekan [SPASI] atau KETUK LAYAR untuk langsung mencoba kembali!</div>
+      </div>
+    </div>
+
+    <!-- LEVEL COMPLETE / VICTORY POPUP -->
+    <div id="modal-level-complete" class="screen-overlay hidden">
+      <div class="result-card victory-card">
+        <div class="result-badge success">VICTORY!</div>
+        <h2 class="result-title">LEVEL SELESAI!</h2>
+        <div class="victory-stars">⭐⭐⭐</div>
+        <div class="result-stats">
+          <div class="stat-box">
+            <span class="stat-label">KEMAJUAN</span>
+            <span class="stat-value highlight">100%</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">TOTAL PERCOBAAN</span>
+            <span class="stat-value" id="victory-attempts">1</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">LOMPATAN</span>
+            <span class="stat-value" id="victory-jumps">0</span>
+          </div>
+        </div>
+        <div class="result-actions">
+          <button id="btn-victory-next" class="btn btn-primary">
+            <span class="btn-icon">▶</span> LEVEL BERIKUTNYA
+          </button>
+          <button id="btn-victory-replay" class="btn btn-warning">
+            <span class="btn-icon">🔄</span> MAIN LAGI
+          </button>
+          <button id="btn-victory-menu" class="btn btn-secondary">
+            <span class="btn-icon">🏠</span> MENU
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAUSE MENU POPUP -->
+    <div id="modal-pause" class="screen-overlay hidden">
+      <div class="result-card pause-card">
+        <h2 class="result-title">JEDA PERMAINAN</h2>
+        <div class="result-actions">
+          <button id="btn-resume-game" class="btn btn-primary">
+            <span class="btn-icon">▶</span> LANJUTKAN
+          </button>
+          <button id="btn-pause-restart" class="btn btn-warning">
+            <span class="btn-icon">🔄</span> ULANGI DARI AWAL
+          </button>
+          <button id="btn-pause-menu" class="btn btn-secondary">
+            <span class="btn-icon">🏠</span> MENU UTAMA
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CODE EXPORT / IMPORT MODAL -->
+    <div id="modal-code-io" class="screen-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="code-io-title">EKSPOR LEVEL</h2>
+          <button class="btn-close-modal" data-close="modal-code-io">✖</button>
+        </div>
+        <div class="modal-body">
+          <p id="code-io-desc">Salin kode level di bawah ini untuk dibagikan:</p>
+          <textarea id="code-io-textarea" rows="6" placeholder="Tempel kode level JSON di sini..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-code-io-action" class="btn btn-primary">SALIN KODE</button>
+          <button class="btn btn-secondary" data-close="modal-code-io">TUTUP</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/customizer.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
